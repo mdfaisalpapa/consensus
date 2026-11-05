@@ -1,0 +1,24 @@
+{% extends "templates/web.html" %}
+{% block title %}Consensus Voting{% endblock %}
+{% block page_content %}
+<main class="container consensus-voter" id="consensus-voter">
+  <h1>Voting</h1>
+  <p id="consensus-auth-message" class="text-muted">Sign in to view polls allocated to your account.</p>
+  <section id="consensus-controls" hidden>
+    <label for="consensus-poll">Poll</label>
+    <select id="consensus-poll" class="form-control"></select>
+    <div id="consensus-poll-details" class="mt-3"></div>
+    <div id="consensus-otp" hidden class="mt-3">
+      <button id="consensus-send-otp" class="btn btn-default">Send verification code</button>
+      <label for="consensus-otp-code" class="mt-2">Email verification code</label>
+      <input id="consensus-otp-code" class="form-control" inputmode="numeric" autocomplete="one-time-code">
+      <button id="consensus-verify-otp" class="btn btn-default mt-2">Verify code</button>
+    </div>
+    <button id="consensus-cast" class="btn btn-primary mt-3" disabled>Cast vote</button>
+    <button id="consensus-receipt" class="btn btn-default mt-3" hidden>Download signed receipt</button>
+    <div id="consensus-message" class="alert mt-3" hidden></div>
+  </section>
+</main>
+<link rel="stylesheet" href="/assets/consensus/css/consensus.css">
+<script src="/assets/consensus/js/consensus_voter.js" defer></script>
+{% endblock %}

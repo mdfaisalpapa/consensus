@@ -1,0 +1,45 @@
+# Python build and test artifacts
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+build/
+dist/
+
+# Local environments and configuration
+.venv/
+venv/
+.env
+.env.*
+site_config.json
+/sites/
+
+# Generated and temporary files
+*.log
+*.tmp
+*.bak
+*.swp
+
+# Databases and exports
+*.db
+*.sqlite
+*.sqlite3
+*.sql
+*.csv
+*.pdf
+
+# Private keys and certificates
+*.pem
+*.key
+*.p12
+*.pfx
+*.crt
+*.cer
+*.der
+/private/
+
+# Frontend dependencies
+node_modules/

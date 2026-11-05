@@ -1,0 +1,150 @@
+{
+  "doctype": "DocType",
+  "name": "Voting Integration Settings",
+  "module": "Consensus",
+  "issingle": 1,
+  "fields": [
+    {
+      "fieldname": "integration_section",
+      "fieldtype": "Section Break",
+      "label": "Voter Integration"
+    },
+    {
+      "fieldname": "enabled",
+      "fieldtype": "Check",
+      "label": "Enable Consensus",
+      "default": "0"
+    },
+    {
+      "fieldname": "provider_key",
+      "fieldtype": "Data",
+      "label": "Registered Provider Key",
+      "description": "Must match a trusted provider registered through the consensus_voter_providers hook."
+    },
+    {
+      "fieldname": "provider_api_version",
+      "fieldtype": "Data",
+      "label": "Provider API Version",
+      "read_only": 1
+    },
+    {
+      "fieldname": "organisation_label",
+      "fieldtype": "Data",
+      "label": "Organisation Display Name"
+    },
+    {
+      "fieldname": "voter_label",
+      "fieldtype": "Data",
+      "label": "Voter Label",
+      "default": "Voter"
+    },
+    {
+      "fieldname": "scope_label",
+      "fieldtype": "Data",
+      "label": "Scope Label",
+      "default": "Group"
+    },
+    {
+      "fieldname": "secret_section",
+      "fieldtype": "Section Break",
+      "label": "External Secret Resolution"
+    },
+    {
+      "fieldname": "secret_resolver_key",
+      "fieldtype": "Data",
+      "label": "Registered Secret Resolver",
+      "description": "Trusted key from the consensus_secret_resolvers hook; not an import path."
+    },
+    {
+      "fieldname": "signing_key_reference",
+      "fieldtype": "Data",
+      "label": "PDF Signing Key Reference"
+    },
+    {
+      "fieldname": "provider_reference_encryption_key_reference",
+      "fieldtype": "Data",
+      "label": "Provider Reference Encryption Key Reference"
+    },
+    {
+      "fieldname": "identity_snapshot_encryption_key_reference",
+      "fieldtype": "Data",
+      "label": "Identity Snapshot Encryption Key Reference"
+    },
+    {
+      "fieldname": "voter_reference_hmac_key_reference",
+      "fieldtype": "Data",
+      "label": "Voter Reference HMAC Key Reference"
+    },
+    {
+      "fieldname": "idempotency_hmac_key_reference",
+      "fieldtype": "Data",
+      "label": "Idempotency HMAC Key Reference"
+    },
+    {
+      "fieldname": "identity_snapshot_hmac_key_reference",
+      "fieldtype": "Data",
+      "label": "Identity Snapshot Commitment HMAC Key Reference"
+    },
+    {
+      "fieldname": "branding_section",
+      "fieldtype": "Section Break",
+      "label": "Receipt Branding"
+    },
+    {
+      "fieldname": "signer_display_name",
+      "fieldtype": "Data",
+      "label": "Signer Display Name"
+    },
+    {
+      "fieldname": "signature_reason",
+      "fieldtype": "Data",
+      "label": "Signature Reason",
+      "default": "Voting receipt"
+    },
+    {
+      "fieldname": "logo",
+      "fieldtype": "Attach Image",
+      "label": "Receipt Logo"
+    },
+    {
+      "fieldname": "signing_certificate",
+      "fieldtype": "Attach",
+      "label": "Public Signing Certificate"
+    },
+    {
+      "fieldname": "otp_section",
+      "fieldtype": "Section Break",
+      "label": "Voter Authorization"
+    },
+    {
+      "fieldname": "otp_enabled",
+      "fieldtype": "Check",
+      "label": "Allow Email OTP",
+      "default": "0"
+    },
+    {
+      "fieldname": "otp_delivery_provider",
+      "fieldtype": "Data",
+      "label": "OTP Delivery Provider",
+      "description": "Optional trusted delivery integration; destination is resolved through the voter provider."
+    },
+    {
+      "fieldname": "otp_hmac_key_reference",
+      "fieldtype": "Data",
+      "label": "OTP HMAC Key Reference"
+    }
+  ],
+  "permissions": [
+    {
+      "role": "System Manager",
+      "read": 1,
+      "write": 1
+    },
+    {
+      "role": "Consensus Administrator",
+      "read": 1,
+      "write": 1
+    }
+  ],
+  "track_changes": 1
+}

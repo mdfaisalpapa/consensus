@@ -1,0 +1,11 @@
+{% extends "templates/web.html" %}
+{% block title %}Public Ballot Register{% endblock %}
+{% block page_content %}
+<main class="container consensus-register" id="consensus-register">
+  <h1>Public Ballot Register</h1>
+  <div id="consensus-register-status" class="alert alert-info">Loading anonymous verification data…</div>
+  <div id="consensus-register-content"></div>
+</main>
+<link rel="stylesheet" href="/assets/consensus/css/consensus.css">
+<script src="/assets/consensus/js/consensus_register.js" defer></script>
+{% endblock %}

@@ -1,0 +1,2 @@
+include *.md
+recursive-include consensus *.json *.js *.css *.html *.py

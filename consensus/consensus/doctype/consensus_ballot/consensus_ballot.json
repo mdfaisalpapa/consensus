@@ -1,0 +1,106 @@
+{
+  "doctype": "DocType",
+  "name": "Consensus Ballot",
+  "module": "Consensus",
+  "fields": [
+    {
+      "fieldname": "poll",
+      "fieldtype": "Link",
+      "label": "Poll",
+      "options": "Consensus Poll",
+      "reqd": 1
+    },
+    {
+      "fieldname": "receipt_code",
+      "fieldtype": "Data",
+      "label": "Receipt Code",
+      "reqd": 1
+    },
+    {
+      "fieldname": "selected_option",
+      "fieldtype": "Link",
+      "label": "Selected Option",
+      "options": "Consensus Poll Option",
+      "reqd": 1
+    },
+    {
+      "fieldname": "selected_option_key",
+      "fieldtype": "Data",
+      "label": "Opaque Option Key",
+      "reqd": 1
+    },
+    {
+      "fieldname": "selected_option_label",
+      "fieldtype": "Data",
+      "label": "Frozen Option Label",
+      "reqd": 1
+    },
+    {
+      "fieldname": "voting_weight",
+      "fieldtype": "Float",
+      "label": "Voting Weight",
+      "reqd": 1
+    },
+    {
+      "fieldname": "cast_on",
+      "fieldtype": "Datetime",
+      "label": "Cast On",
+      "reqd": 1
+    },
+    {
+      "fieldname": "ballot_hash",
+      "fieldtype": "Data",
+      "label": "Ballot Hash",
+      "reqd": 1
+    },
+    {
+      "fieldname": "idempotency_digest",
+      "fieldtype": "Data",
+      "label": "Idempotency Digest",
+      "reqd": 1
+    },
+    {
+      "fieldname": "idempotency_hmac_key_version",
+      "fieldtype": "Data",
+      "label": "Idempotency HMAC Key Version",
+      "reqd": 1
+    },
+    {
+      "fieldname": "hash_format_version",
+      "fieldtype": "Data",
+      "label": "Hash Format Version",
+      "reqd": 1,
+      "default": "society-erp-v1"
+    }
+  ],
+  "permissions": [
+    {
+      "role": "System Manager",
+      "read": 0,
+      "write": 0,
+      "create": 0,
+      "delete": 0
+    },
+    {
+      "role": "Consensus Administrator",
+      "read": 0,
+      "write": 0,
+      "create": 0,
+      "delete": 0
+    },
+    {
+      "role": "Consensus Eligibility Officer",
+      "read": 0,
+      "write": 0,
+      "create": 0,
+      "delete": 0
+    }
+  ],
+  "track_changes": 0,
+  "track_seen": 0,
+  "allow_import": 0,
+  "autoname": "hash",
+  "title_field": "receipt_code",
+  "search_fields": "receipt_code",
+  "allow_rename": 0
+}

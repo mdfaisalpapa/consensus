@@ -1,0 +1,14 @@
+.consensus-voter,
+.consensus-register {
+    max-width: 980px;
+    padding-top: 2rem;
+    padding-bottom: 3rem;
+}
+.consensus-voter h1,
+.consensus-register h1 {
+    margin-bottom: 1.5rem;
+}
+.consensus-register td:last-child {
+    font-family: monospace;
+    overflow-wrap: anywhere;
+}

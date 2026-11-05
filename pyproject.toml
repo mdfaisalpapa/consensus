@@ -1,0 +1,26 @@
+[project]
+name = "consensus"
+authors = [{ name = "Consensus Contributors" }]
+description = "Reusable voting and election management for Frappe"
+requires-python = ">=3.10"
+readme = "README.md"
+dynamic = ["version"]
+dependencies = ["cryptography>=46.0.3,<47", "reportlab>=4.0", "pyHanko>=0.34,<0.35"]
+
+[build-system]
+requires = ["flit_core >=3.4,<4"]
+build-backend = "flit_core.buildapi"
+
+[tool.ruff]
+line-length = 100
+
+[tool.ruff.lint]
+select = ["F", "E", "W", "I", "UP", "B"]
+ignore = ["E501"]
+
+[project.optional-dependencies]
+dev = ["pytest>=8.0", "ruff>=0.6"]
+
+[tool.bench.dev-dependencies]
+pytest = ">=8.0"
+ruff = ">=0.6"

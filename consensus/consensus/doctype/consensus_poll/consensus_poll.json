@@ -1,0 +1,382 @@
+{
+  "doctype": "DocType",
+  "name": "Consensus Poll",
+  "module": "Consensus",
+  "autoname": "naming_series:",
+  "title_field": "title",
+  "search_fields": "title,poll_type,status",
+  "sort_field": "modified",
+  "sort_order": "DESC",
+  "fields": [
+    {
+      "fieldname": "naming_series",
+      "fieldtype": "Select",
+      "label": "Series",
+      "options": "CNS-.#####",
+      "default": "CNS-.#####",
+      "reqd": 1,
+      "hidden": 1
+    },
+    {
+      "fieldname": "title",
+      "fieldtype": "Data",
+      "label": "Poll Title",
+      "reqd": 1,
+      "in_list_view": 1
+    },
+    {
+      "fieldname": "poll_type",
+      "fieldtype": "Link",
+      "label": "Poll Type",
+      "options": "Consensus Poll Type",
+      "reqd": 1,
+      "in_list_view": 1
+    },
+    {
+      "fieldname": "description",
+      "fieldtype": "Text Editor",
+      "label": "Description"
+    },
+    {
+      "fieldname": "status",
+      "fieldtype": "Select",
+      "label": "Status",
+      "options": "Draft\nScheduled\nOpen\nClosed\nCancelled",
+      "default": "Draft",
+      "reqd": 1,
+      "in_list_view": 1
+    },
+    {
+      "fieldname": "dates_section",
+      "fieldtype": "Section Break",
+      "label": "Voting Period"
+    },
+    {
+      "fieldname": "starts_at",
+      "fieldtype": "Datetime",
+      "label": "Voting Starts",
+      "reqd": 1
+    },
+    {
+      "fieldname": "ends_at",
+      "fieldtype": "Datetime",
+      "label": "Voting Ends",
+      "reqd": 1
+    },
+    {
+      "fieldname": "scope_section",
+      "fieldtype": "Section Break",
+      "label": "Voting Scope"
+    },
+    {
+      "fieldname": "provider_key",
+      "fieldtype": "Data",
+      "label": "Voter Provider",
+      "read_only": 1
+    },
+    {
+      "fieldname": "provider_api_version",
+      "fieldtype": "Data",
+      "label": "Provider API Version",
+      "read_only": 1
+    },
+    {
+      "fieldname": "scope_selections",
+      "fieldtype": "Table",
+      "label": "Selected Scope Entities",
+      "options": "Consensus Poll Scope"
+    },
+    {
+      "fieldname": "scope_selection_operator",
+      "fieldtype": "Select",
+      "label": "Combine Scope Selections",
+      "options": "Any\nAll",
+      "default": "Any"
+    },
+    {
+      "fieldname": "scope_conditions",
+      "fieldtype": "Code",
+      "label": "Provider Scope Conditions",
+      "options": "JSON"
+    },
+    {
+      "fieldname": "scope_conditions_operator",
+      "fieldtype": "Select",
+      "label": "Combine Conditions",
+      "options": "All\nAny",
+      "default": "All"
+    },
+    {
+      "fieldname": "rule_key",
+      "fieldtype": "Data",
+      "label": "Provider Eligibility Rule"
+    },
+    {
+      "fieldname": "rule_config",
+      "fieldtype": "Code",
+      "label": "Poll-specific Rule Overrides",
+      "options": "JSON"
+    },
+    {
+      "fieldname": "snapshot_section",
+      "fieldtype": "Section Break",
+      "label": "Frozen Snapshot Metadata"
+    },
+    {
+      "fieldname": "snapshot_state",
+      "fieldtype": "Select",
+      "label": "Snapshot State",
+      "options": "Not Started\nBuilding\nComplete\nFailed",
+      "default": "Not Started",
+      "read_only": 1
+    },
+    {
+      "fieldname": "snapshot_build_id",
+      "fieldtype": "Data",
+      "label": "Snapshot Build ID",
+      "read_only": 1
+    },
+    {
+      "fieldname": "snapshot_started_on",
+      "fieldtype": "Datetime",
+      "label": "Snapshot Started On",
+      "read_only": 1
+    },
+    {
+      "fieldname": "snapshot_completed_on",
+      "fieldtype": "Datetime",
+      "label": "Snapshot Completed On",
+      "read_only": 1
+    },
+    {
+      "fieldname": "snapshot_poll_type_key",
+      "fieldtype": "Data",
+      "label": "Snapshot Poll Type",
+      "read_only": 1
+    },
+    {
+      "fieldname": "snapshot_poll_type_config_hash",
+      "fieldtype": "Data",
+      "label": "Poll Type Configuration Hash",
+      "read_only": 1
+    },
+    {
+      "fieldname": "snapshot_provider_key",
+      "fieldtype": "Data",
+      "label": "Snapshot Provider",
+      "read_only": 1
+    },
+    {
+      "fieldname": "snapshot_provider_api_version",
+      "fieldtype": "Data",
+      "label": "Snapshot Provider API Version",
+      "read_only": 1
+    },
+    {
+      "fieldname": "snapshot_provider_data_version",
+      "fieldtype": "Data",
+      "label": "Provider Data Version",
+      "read_only": 1
+    },
+    {
+      "fieldname": "snapshot_rule_key",
+      "fieldtype": "Data",
+      "label": "Snapshot Rule Key",
+      "read_only": 1
+    },
+    {
+      "fieldname": "snapshot_rule_version",
+      "fieldtype": "Data",
+      "label": "Snapshot Rule Version",
+      "read_only": 1
+    },
+    {
+      "fieldname": "snapshot_scope_json",
+      "fieldtype": "Code",
+      "label": "Canonical Scope Snapshot",
+      "options": "JSON",
+      "read_only": 1
+    },
+    {
+      "fieldname": "snapshot_rule_config_json",
+      "fieldtype": "Code",
+      "label": "Canonical Rule Configuration",
+      "options": "JSON",
+      "read_only": 1
+    },
+    {
+      "fieldname": "snapshot_voter_hmac_key_version",
+      "fieldtype": "Data",
+      "label": "Voter HMAC Key Version",
+      "read_only": 1
+    },
+    {
+      "fieldname": "snapshot_idempotency_hmac_key_version",
+      "fieldtype": "Data",
+      "label": "Idempotency HMAC Key Version",
+      "read_only": 1
+    },
+    {
+      "fieldname": "snapshot_identity_hmac_key_version",
+      "fieldtype": "Data",
+      "label": "Identity Commitment HMAC Key Version",
+      "read_only": 1
+    },
+    {
+      "fieldname": "snapshot_reference_encryption_key_version",
+      "fieldtype": "Data",
+      "label": "Reference Encryption Key Version",
+      "read_only": 1
+    },
+    {
+      "fieldname": "snapshot_identity_encryption_key_version",
+      "fieldtype": "Data",
+      "label": "Identity Encryption Key Version",
+      "read_only": 1
+    },
+    {
+      "fieldname": "snapshot_signing_key_version",
+      "fieldtype": "Data",
+      "label": "Receipt Signing Key Version",
+      "read_only": 1
+    },
+    {
+      "fieldname": "eligible_voter_count",
+      "fieldtype": "Int",
+      "label": "Eligible Voters",
+      "read_only": 1
+    },
+    {
+      "fieldname": "eligibility_snapshot_hash",
+      "fieldtype": "Data",
+      "label": "Eligibility Snapshot Hash",
+      "read_only": 1
+    },
+    {
+      "fieldname": "settings_section",
+      "fieldtype": "Section Break",
+      "label": "Voting Settings"
+    },
+    {
+      "fieldname": "require_otp",
+      "fieldtype": "Check",
+      "label": "Require OTP"
+    },
+    {
+      "fieldname": "result_visibility",
+      "fieldtype": "Select",
+      "label": "Result Visibility",
+      "options": "After Closing\nImmediately\nManual",
+      "default": "After Closing"
+    },
+    {
+      "fieldname": "publish_anonymous_register",
+      "fieldtype": "Check",
+      "label": "Publish Anonymous Ballot Register"
+    },
+    {
+      "fieldname": "register_published",
+      "fieldtype": "Check",
+      "label": "Register Published",
+      "read_only": 1
+    },
+    {
+      "fieldname": "register_hash",
+      "fieldtype": "Data",
+      "label": "Published Register SHA-256",
+      "read_only": 1
+    },
+    {
+      "fieldname": "published_on",
+      "fieldtype": "Datetime",
+      "label": "Published On",
+      "read_only": 1
+    },
+    {
+      "fieldname": "frozen_title",
+      "fieldtype": "Data",
+      "label": "Frozen Poll Title",
+      "read_only": 1
+    },
+    {
+      "fieldname": "frozen_poll_type_label",
+      "fieldtype": "Data",
+      "label": "Frozen Poll Type Label",
+      "read_only": 1
+    },
+    {
+      "fieldname": "snapshot_scope_hash",
+      "fieldtype": "Data",
+      "label": "Scope Snapshot Hash",
+      "read_only": 1
+    },
+    {
+      "fieldname": "snapshot_option_hash",
+      "fieldtype": "Data",
+      "label": "Option Snapshot Hash",
+      "read_only": 1
+    },
+    {
+      "fieldname": "snapshot_identity_hmac_key_version",
+      "fieldtype": "Data",
+      "label": "Identity HMAC Version",
+      "read_only": 1
+    },
+    {
+      "fieldname": "snapshot_created_by",
+      "fieldtype": "Link",
+      "label": "Snapshot Created By",
+      "options": "User",
+      "read_only": 1
+    },
+    {
+      "fieldname": "snapshot_poll_type_label",
+      "fieldtype": "Data",
+      "label": "Frozen Poll Type Label",
+      "read_only": 1
+    },
+    {
+      "fieldname": "results_published",
+      "fieldtype": "Check",
+      "label": "Results Published",
+      "read_only": 1
+    },
+    {
+      "fieldname": "results_published_on",
+      "fieldtype": "Datetime",
+      "label": "Results Published On",
+      "read_only": 1
+    },
+    {
+      "fieldname": "snapshot_poll_type_configuration_version",
+      "fieldtype": "Data",
+      "label": "Poll Type Configuration Version",
+      "read_only": 1
+    }
+  ],
+  "permissions": [
+    {
+      "role": "System Manager",
+      "read": 1,
+      "write": 1,
+      "create": 1,
+      "delete": 1,
+      "report": 1,
+      "export": 1,
+      "print": 1
+    },
+    {
+      "role": "Consensus Administrator",
+      "read": 1,
+      "write": 1,
+      "create": 1,
+      "delete": 1,
+      "report": 1,
+      "export": 1,
+      "print": 1
+    }
+  ],
+  "allow_import": 0,
+  "track_changes": 1,
+  "track_seen": 1
+}

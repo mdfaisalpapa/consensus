@@ -1,0 +1,175 @@
+{
+  "doctype": "DocType",
+  "name": "Consensus Eligibility",
+  "module": "Consensus",
+  "fields": [
+    {
+      "fieldname": "poll",
+      "fieldtype": "Link",
+      "label": "Poll",
+      "options": "Consensus Poll",
+      "reqd": 1
+    },
+    {
+      "fieldname": "voter_ref_digest",
+      "fieldtype": "Data",
+      "label": "Voter Reference Digest",
+      "reqd": 1
+    },
+    {
+      "fieldname": "encrypted_voter_reference",
+      "fieldtype": "Long Text",
+      "label": "Encrypted Provider Voter Reference",
+      "reqd": 1
+    },
+    {
+      "fieldname": "reference_nonce",
+      "fieldtype": "Data",
+      "label": "Reference Encryption Nonce",
+      "reqd": 1
+    },
+    {
+      "fieldname": "reference_key_version",
+      "fieldtype": "Data",
+      "label": "Reference Encryption Key Version",
+      "reqd": 1
+    },
+    {
+      "fieldname": "provider_key",
+      "fieldtype": "Data",
+      "label": "Provider Key",
+      "reqd": 1
+    },
+    {
+      "fieldname": "provider_api_version",
+      "fieldtype": "Data",
+      "label": "Provider API Version",
+      "reqd": 1
+    },
+    {
+      "fieldname": "rule_key",
+      "fieldtype": "Data",
+      "label": "Rule Key",
+      "reqd": 1
+    },
+    {
+      "fieldname": "rule_version",
+      "fieldtype": "Data",
+      "label": "Rule Version",
+      "reqd": 1
+    },
+    {
+      "fieldname": "scope_snapshot_json",
+      "fieldtype": "Long Text",
+      "label": "Scope Snapshot JSON"
+    },
+    {
+      "fieldname": "voter_user",
+      "fieldtype": "Link",
+      "label": "Allocated Frappe User",
+      "options": "User",
+      "reqd": 1
+    },
+    {
+      "fieldname": "voter_category",
+      "fieldtype": "Data",
+      "label": "Voter Category"
+    },
+    {
+      "fieldname": "context_ref",
+      "fieldtype": "Data",
+      "label": "Provider Context Reference"
+    },
+    {
+      "fieldname": "encrypted_identity_snapshot",
+      "fieldtype": "Long Text",
+      "label": "Encrypted Receipt Identity Snapshot",
+      "reqd": 1
+    },
+    {
+      "fieldname": "identity_nonce",
+      "fieldtype": "Data",
+      "label": "Identity Snapshot Nonce",
+      "reqd": 1
+    },
+    {
+      "fieldname": "identity_key_version",
+      "fieldtype": "Data",
+      "label": "Identity Encryption Key Version",
+      "reqd": 1
+    },
+    {
+      "fieldname": "identity_schema_key",
+      "fieldtype": "Data",
+      "label": "Identity Schema Key",
+      "reqd": 1
+    },
+    {
+      "fieldname": "identity_schema_version",
+      "fieldtype": "Data",
+      "label": "Identity Schema Version",
+      "reqd": 1
+    },
+    {
+      "fieldname": "identity_commitment",
+      "fieldtype": "Data",
+      "label": "Identity Snapshot Commitment",
+      "reqd": 1
+    },
+    {
+      "fieldname": "identity_hmac_key_version",
+      "fieldtype": "Data",
+      "label": "Identity Commitment Key Version",
+      "reqd": 1
+    },
+    {
+      "fieldname": "voting_weight",
+      "fieldtype": "Float",
+      "label": "Voting Weight",
+      "reqd": 1,
+      "default": "1"
+    },
+    {
+      "fieldname": "status",
+      "fieldtype": "Select",
+      "label": "Eligibility Status",
+      "options": "Eligible\nVoted\nRevoked",
+      "default": "Eligible",
+      "reqd": 1
+    },
+    {
+      "fieldname": "snapshot_hash",
+      "fieldtype": "Data",
+      "label": "Snapshot Row Hash",
+      "reqd": 1
+    }
+  ],
+  "permissions": [
+    {
+      "role": "System Manager",
+      "read": 0,
+      "write": 0,
+      "create": 0,
+      "delete": 0
+    },
+    {
+      "role": "Consensus Administrator",
+      "read": 0,
+      "write": 0,
+      "create": 0,
+      "delete": 0
+    },
+    {
+      "role": "Consensus Eligibility Officer",
+      "read": 0,
+      "write": 0,
+      "create": 0,
+      "delete": 0
+    }
+  ],
+  "track_changes": 0,
+  "track_seen": 0,
+  "allow_import": 0,
+  "autoname": "hash",
+  "title_field": "name"
+}
