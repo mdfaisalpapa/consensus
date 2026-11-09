@@ -42,14 +42,34 @@ def _assert_poll_open(poll):
         frappe.throw("This poll is not currently open for voting.")
 
 
-def _eligible(poll_name, user, lock=False):
-    filters = {"poll": poll_name, "voter_user": user, "status": ["in", ["Eligible", "Voted"]]}
-    rows = frappe.get_all("Consensus Eligibility", filters=filters, fields=["name"], limit=2)
-    if len(rows) != 1:
-        frappe.throw("Your account is not allocated to vote in this poll.", frappe.PermissionError)
+def _assert_voting_enabled(poll):
+    from consensus.providers.registry import get_registered_provider
+    provider = get_registered_provider(poll.snapshot_provider_key)
+    if hasattr(provider, "assert_voting_enabled"):
+        provider.assert_voting_enabled({"poll_name": poll.name, "poll_type": poll.poll_type})
+
+
+def _eligible(poll_name, user, eligibility_name=None, lock=False):
+    if eligibility_name == poll_name:
+        eligibility_name = None
+    if eligibility_name:
+        filters = {"name": eligibility_name, "poll": poll_name, "voter_user": user, "status": ["in", ["Eligible", "Voted"]]}
+        rows = frappe.get_all("Consensus Eligibility", filters=filters, fields=["name"], limit=1)
+        if not rows:
+            frappe.throw("Your account is not allocated to vote in this poll with the specified eligibility.", frappe.PermissionError)
+    else:
+        filters = {"poll": poll_name, "voter_user": user, "status": ["in", ["Eligible", "Voted"]]}
+        rows = frappe.get_all("Consensus Eligibility", filters=filters, fields=["name"], limit=2)
+        if len(rows) > 1:
+            frappe.throw("Multiple eligible allocations exist. Please specify the eligibility allocation.", frappe.ValidationError)
+        if len(rows) != 1:
+            frappe.throw("Your account is not allocated to vote in this poll.", frappe.PermissionError)
     if lock:
         _locked_row("Consensus Eligibility", rows[0].name)
-    return frappe.get_doc("Consensus Eligibility", rows[0].name)
+    eligibility = frappe.get_doc("Consensus Eligibility", rows[0].name)
+    if lock:
+        eligibility.reload()
+    return eligibility
 
 
 def _assert_otp(poll, user, eligibility):
@@ -60,11 +80,12 @@ def _assert_otp(poll, user, eligibility):
         frappe.throw("Complete OTP verification before voting.", frappe.PermissionError)
 
 
-def send_voting_otp(poll_name: str):
+def send_voting_otp(poll_name: str, eligibility_name: str | None = None):
     user = _user()
     poll = frappe.get_doc("Consensus Poll", poll_name)
+    _assert_voting_enabled(poll)
     _assert_poll_open(poll)
-    eligibility = _eligible(poll.name, user)
+    eligibility = _eligible(poll.name, user, eligibility_name=eligibility_name)
     if eligibility.status != "Eligible":
         frappe.throw("A vote has already been recorded for this voter.")
     if not poll.require_otp:
@@ -107,11 +128,12 @@ def send_voting_otp(poll_name: str):
     return {"success": True, "otp_required": True}
 
 
-def verify_voting_otp(poll_name: str, code: str):
+def verify_voting_otp(poll_name: str, code: str, eligibility_name: str | None = None):
     user = _user()
     poll = frappe.get_doc("Consensus Poll", poll_name)
+    _assert_voting_enabled(poll)
     _assert_poll_open(poll)
-    eligibility = _eligible(poll.name, user)
+    eligibility = _eligible(poll.name, user, eligibility_name=eligibility_name)
     key = _otp_cache_key("pending", poll.name, user, eligibility.voter_ref_digest)
     cache = frappe.cache()
     raw = cache.get_value(key)
@@ -159,18 +181,19 @@ def close_poll(poll_name: str):
     return {"poll": poll.name, "status": poll.status}
 
 
-def cast_vote(poll_name: str, option_name: str, idempotency_key: str):
+def cast_vote(poll_name: str, option_name: str, idempotency_key: str, eligibility_name: str | None = None):
     """Insert participation and anonymous ballot in one Frappe request transaction."""
     user = _user()
     poll = frappe.get_doc("Consensus Poll", poll_name)
+    _assert_voting_enabled(poll)
     _locked_row("Consensus Poll", poll.name)
     poll.reload()
-    eligibility = _eligible(poll.name, user, lock=True)
+    eligibility = _eligible(poll.name, user, eligibility_name=eligibility_name, lock=True)
     key_version = poll.snapshot_idempotency_hmac_key_version
     idem = idempotency_digest(poll.name, eligibility.voter_ref_digest, idempotency_key, key_version)
     existing_participation = frappe.db.get_value(
         "Consensus Participation", {"poll": poll.name, "voter_ref_digest": eligibility.voter_ref_digest},
-        ["name", "voter_user"], as_dict=True,
+        ["name", "voter_user"], as_dict=True, for_update=True,
     )
     if existing_participation:
         if existing_participation.voter_user != user:
@@ -179,7 +202,7 @@ def cast_vote(poll_name: str, option_name: str, idempotency_key: str):
             "Consensus Ballot",
             {"poll": poll.name, "idempotency_hmac_key_version": key_version, "idempotency_digest": idem},
             ["receipt_code", "selected_option_label", "voting_weight", "cast_on", "ballot_hash"],
-            as_dict=True,
+            as_dict=True, for_update=True,
         )
         if not ballot:
             frappe.throw("The vote exists, but this authenticated request cannot recover its receipt.")
@@ -229,6 +252,13 @@ def cast_vote(poll_name: str, option_name: str, idempotency_key: str):
         {"owner": "Administrator", "modified_by": "Administrator"}, update_modified=False,
     )
     frappe.db.set_value("Consensus Eligibility", eligibility.name, "status", "Voted", update_modified=False)
+    cast_count = frappe.db.count("Consensus Participation", {"poll": poll.name})
+    eligible = poll.eligible_voter_count or 1
+    frappe.db.set_value(
+        "Consensus Poll", poll.name,
+        {"ballots_cast_count": cast_count, "turnout_percentage": round((cast_count / eligible * 100.0), 2)},
+        update_modified=False,
+    )
     if poll.require_otp:
         frappe.db.after_commit.add(
             lambda: frappe.cache().delete_value(
@@ -242,11 +272,12 @@ def cast_vote(poll_name: str, option_name: str, idempotency_key: str):
     }
 
 
-def get_my_vote(poll_name: str, idempotency_key: str):
+def get_my_vote(poll_name: str, idempotency_key: str, eligibility_name: str | None = None):
     """Authenticated receipt recovery; eligibility is re-established independently."""
     user = _user()
     poll = frappe.get_doc("Consensus Poll", poll_name)
-    eligibility = _eligible(poll.name, user)
+    _assert_voting_enabled(poll)
+    eligibility = _eligible(poll.name, user, eligibility_name=eligibility_name)
     digest = idempotency_digest(
         poll.name, eligibility.voter_ref_digest, idempotency_key,
         poll.snapshot_idempotency_hmac_key_version,
@@ -257,7 +288,7 @@ def get_my_vote(poll_name: str, idempotency_key: str):
         "name",
     )
     if not participation:
-        frappe.throw("No participation is recorded for this authenticated voter.")
+        return {"success": False, "recovered": False, "reason": "No participation is recorded for this authenticated voter."}
     ballot = frappe.db.get_value(
         "Consensus Ballot",
         {"poll": poll.name, "idempotency_hmac_key_version": poll.snapshot_idempotency_hmac_key_version,
@@ -266,8 +297,8 @@ def get_my_vote(poll_name: str, idempotency_key: str):
         as_dict=True,
     )
     if not ballot:
-        frappe.throw("No receipt can be recovered using this voter's idempotency key.")
-    return {"success": True, "poll": poll.name, **ballot}
+        return {"success": False, "recovered": False, "reason": "No receipt can be recovered using this voter's idempotency key."}
+    return {"success": True, "recovered": True, "poll": poll.name, **ballot}
 
 
 def close_expired_polls():

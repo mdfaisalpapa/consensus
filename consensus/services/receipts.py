@@ -57,7 +57,7 @@ def _qr_url(poll, ballot):
 
 def _make_pdf(poll, ballot, identity):
     from reportlab.graphics.barcode import qr
-    from reportlab.graphics.shapes import Drawing
+    from reportlab.graphics.shapes import Circle, Drawing, PolyLine
     from reportlab.lib import colors
     from reportlab.lib.pagesizes import A4
     from reportlab.lib.styles import ParagraphStyle, getSampleStyleSheet
@@ -72,18 +72,18 @@ def _make_pdf(poll, ballot, identity):
     styles = getSampleStyleSheet()
     styles.add(ParagraphStyle(name="ConsensusHash", parent=styles["Normal"], fontName="Courier", fontSize=7))
     doc = SimpleDocTemplate(buffer, pagesize=A4, rightMargin=18*mm, leftMargin=18*mm,
-                            topMargin=18*mm, bottomMargin=25*mm)
+                            topMargin=15*mm, bottomMargin=15*mm)
     story = []
     if settings.logo:
         try:
             logo_path = frappe.get_doc("File", {"file_url": settings.logo}).get_full_path()
-            story.append(Image(logo_path, width=35*mm, height=20*mm, kind="proportional"))
+            story.append(Image(logo_path, width=35*mm, height=18*mm, kind="proportional"))
         except Exception as exc:
             raise frappe.ValidationError("Configured receipt logo is unavailable.") from exc
     story.extend([
         Paragraph(escape(settings.organisation_label or "Consensus"), styles["Heading2"]),
         Paragraph("VOTING RECEIPT", styles["Title"]),
-        Spacer(1, 6*mm),
+        Spacer(1, 4*mm),
     ])
     rows = [["Poll", poll.frozen_title or poll.title], ["Poll reference", poll.name]]
     for field in sorted(fields, key=lambda item: (item.get("display_order", 0), item.get("key", ""))):
@@ -95,28 +95,44 @@ def _make_pdf(poll, ballot, identity):
         ["Date and time", str(ballot.cast_on)],
         ["SHA-256 ballot hash", Paragraph(escape(ballot.ballot_hash), styles["ConsensusHash"])],
     ])
-    table = Table(rows, colWidths=[45*mm, 115*mm])
+    table = Table(rows, colWidths=[45*mm, 129*mm])
     table.setStyle(TableStyle([
         ("BACKGROUND", (0, 0), (0, -1), colors.HexColor("#eeeeee")),
         ("GRID", (0, 0), (-1, -1), .4, colors.HexColor("#bbbbbb")),
         ("VALIGN", (0, 0), (-1, -1), "TOP"),
         ("FONTNAME", (0, 0), (0, -1), "Helvetica-Bold"),
         ("FONTSIZE", (0, 0), (-1, -1), 8),
-        ("LEFTPADDING", (0, 0), (-1, -1), 6),
-        ("RIGHTPADDING", (0, 0), (-1, -1), 6),
-        ("TOPPADDING", (0, 0), (-1, -1), 6),
-        ("BOTTOMPADDING", (0, 0), (-1, -1), 6),
+        ("LEFTPADDING", (0, 0), (-1, -1), 5),
+        ("RIGHTPADDING", (0, 0), (-1, -1), 5),
+        ("TOPPADDING", (0, 0), (-1, -1), 4),
+        ("BOTTOMPADDING", (0, 0), (-1, -1), 4),
     ]))
-    story.extend([table, Spacer(1, 8*mm)])
+    story.extend([table, Spacer(1, 5*mm)])
+
+    # QR verification section
     qr_value = _qr_url(poll, ballot)
     widget = qr.QrCodeWidget(qr_value)
     x1, y1, x2, y2 = widget.getBounds()
-    drawing = Drawing(28*mm, 28*mm, transform=[28*mm/(x2-x1),0,0,28*mm/(y2-y1),0,0])
+    drawing = Drawing(26*mm, 26*mm, transform=[26*mm/(x2-x1),0,0,26*mm/(y2-y1),0,0])
     drawing.add(widget)
-    story.append(drawing)
-    story.append(Paragraph(
-        "The signature panel validates this PDF. Use the QR link to compare the anonymous ballot "
-        "claims with the published register.", styles["Normal"]))
+    qr_info = Paragraph(
+        "<font size=8><b>Receipt Verification QR Code</b><br/>"
+        "Scan this QR code to compare your anonymous ballot claims directly against the published register. "
+        "The cryptographic ballot hash confirms your vote was counted without revealing voter identity.<br/>"
+        "<i>Note: Digital signature verification is provided natively in Adobe Acrobat Reader. "
+        "Click the digital signature block below to view certificate properties and validation status.</i></font>",
+        styles["Normal"]
+    )
+    qr_table = Table([[drawing, qr_info]], colWidths=[30*mm, 144*mm])
+    qr_table.setStyle(TableStyle([
+        ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
+        ("LEFTPADDING", (0, 0), (-1, -1), 2),
+        ("RIGHTPADDING", (0, 0), (-1, -1), 4),
+        ("TOPPADDING", (0, 0), (-1, -1), 4),
+        ("BOTTOMPADDING", (0, 0), (-1, -1), 4),
+    ]))
+    story.extend([qr_table, Spacer(1, 10*mm)])
+
     doc.build(story)
     return buffer.getvalue()
 
@@ -133,24 +149,31 @@ def _signed_pdf(poll, ballot, identity):
     writer = IncrementalPdfFileWriter(io.BytesIO(unsigned))
     settings = frappe.get_single("Voting Integration Settings")
     signer = _signer(poll)
+    signer_display = settings.signer_display_name or settings.organisation_label or "Consensus Authority"
+    reason = settings.signature_reason or "Voting receipt verification"
+    location = settings.organisation_label or "Consensus Association Portal"
+
     pdf_signer = signers.PdfSigner(
         PdfSignatureMetadata(
             field_name="ConsensusSignature", md_algorithm="sha256",
-            reason=settings.signature_reason or "Voting receipt",
+            reason=reason,
+            location=location,
         ),
         signer=signer,
         stamp_style=TextStampStyle(
-            stamp_text="Digitally signed by %(signer)s\nDate: %(ts)s",
+            stamp_text="Digitally signed by %(signer)s\nDate: %(ts)s\nReason: %(reason)s\nLocation: %(location)s\n(Click to verify digital signature)",
         ),
         new_field_spec=SigFieldSpec(
             sig_field_name="ConsensusSignature", on_page=-1,
-            box=(56, 32, 539, 100), readable_field_name="Consensus Digital Signature",
+            box=(51, 30, 544, 90), readable_field_name="Consensus Digital Signature",
         ),
     )
     pdf_signer.sign_pdf(
         writer, output=output,
         appearance_text_params={
-            "signer": settings.signer_display_name or settings.organisation_label or "Consensus",
+            "signer": signer_display,
+            "reason": reason,
+            "location": location,
         },
     )
     result = output.getvalue()
@@ -175,10 +198,13 @@ def receipt_bytes(poll_name: str, receipt_code: str, eligibility_name: str):
     return _signed_pdf(poll, ballot, identity)
 
 
-def download_my_receipt(poll_name: str, idempotency_key: str):
+def download_my_receipt(poll_name: str, idempotency_key: str, eligibility_name: str | None = None):
     from consensus.services.voting import _eligible, _user, get_my_vote
-    result = get_my_vote(poll_name, idempotency_key)
-    eligibility = _eligible(poll_name, _user())
+    result = get_my_vote(poll_name, idempotency_key, eligibility_name=eligibility_name)
+    if not result or not result.get("receipt_code"):
+        reason = result.get("reason") if isinstance(result, dict) else "No receipt can be recovered."
+        frappe.throw(reason)
+    eligibility = _eligible(poll_name, _user(), eligibility_name=eligibility_name)
     content = receipt_bytes(poll_name, result["receipt_code"], eligibility.name)
     frappe.local.response.filename = f"Consensus-Receipt-{result['receipt_code']}.pdf"
     frappe.local.response.filecontent = content
@@ -275,18 +301,111 @@ def download_register_csv(poll_name: str):
 def download_register_pdf(poll_name: str):
     from reportlab.lib import colors
     from reportlab.lib.pagesizes import A4, landscape
-    from reportlab.platypus import SimpleDocTemplate, Table, TableStyle
+    from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
+    from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+    from pyhanko.pdf_utils.incremental_writer import IncrementalPdfFileWriter
+    from pyhanko.sign import signers
+    from pyhanko.sign.fields import SigFieldSpec
+    from pyhanko.sign.signers import PdfSignatureMetadata
+    from pyhanko.stamp import TextStampStyle
+
+    poll = frappe.get_doc("Consensus Poll", poll_name)
     register = get_published_register(poll_name)
+    settings = frappe.get_single("Voting Integration Settings")
+
     out = io.BytesIO()
-    doc = SimpleDocTemplate(out, pagesize=landscape(A4))
-    rows = [["Receipt Code", "Selected Option", "Weight", "Ballot Hash"]]
-    rows.extend([[r["receipt_code"], r["selected_option_label"], f"{float(r['voting_weight']):.3f}",
-                  r["ballot_hash"]] for r in register["ballots"]])
-    table = Table(rows, repeatRows=1)
-    table.setStyle(TableStyle([("BACKGROUND",(0,0),(-1,0),colors.lightgrey),("GRID",(0,0),(-1,-1),.3,colors.grey)]))
-    doc.build([table])
+    doc = SimpleDocTemplate(
+        out, pagesize=landscape(A4),
+        leftMargin=30, rightMargin=30, topMargin=30, bottomMargin=85,
+    )
+    styles = getSampleStyleSheet()
+    title_style = ParagraphStyle(
+        "RegTitle", parent=styles["Heading1"], fontSize=16, leading=20, textColor=colors.HexColor("#1e3a8a")
+    )
+    meta_style = ParagraphStyle(
+        "RegMeta", parent=styles["Normal"], fontSize=9, leading=13, textColor=colors.HexColor("#475569")
+    )
+    cell_style = ParagraphStyle(
+        "RegCell", parent=styles["Normal"], fontSize=8, leading=10, fontName="Courier"
+    )
+
+    story = [
+        Paragraph(f"<b>Official Anonymous Ballot Register</b>", title_style),
+        Spacer(1, 4),
+        Paragraph(
+            f"<b>Poll:</b> {poll.frozen_title or poll.title} ({poll.name}) | <b>Status:</b> Closed &amp; Published<br/>"
+            f"<b>Published On:</b> {poll.published_on or 'N/A'} | <b>Total Ballots Cast:</b> {len(register['ballots'])}<br/>"
+            f"<b>Register Integrity SHA-256 Hash:</b> {register['register_hash']}",
+            meta_style,
+        ),
+        Spacer(1, 10),
+    ]
+
+    header_row = ["Receipt Code", "Selected Option", "Weight", "Ballot Hash (SHA-256)"]
+    rows = [header_row]
+    for r in register["ballots"]:
+        rows.append([
+            Paragraph(r["receipt_code"], cell_style),
+            Paragraph(r["selected_option_label"], styles["Normal"]),
+            f"{float(r['voting_weight']):.3f}",
+            Paragraph(r["ballot_hash"], cell_style),
+        ])
+
+    table = Table(rows, colWidths=[180, 150, 60, 380], repeatRows=1)
+    table.setStyle(TableStyle([
+        ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#f1f5f9")),
+        ("TEXTCOLOR", (0, 0), (-1, 0), colors.HexColor("#0f172a")),
+        ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
+        ("FONTSIZE", (0, 0), (-1, 0), 9),
+        ("GRID", (0, 0), (-1, -1), 0.5, colors.HexColor("#cbd5e1")),
+        ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
+        ("TOPPADDING", (0, 0), (-1, -1), 4),
+        ("BOTTOMPADDING", (0, 0), (-1, -1), 4),
+    ]))
+    story.append(table)
+    doc.build(story)
+
+    unsigned_pdf = out.getvalue()
+
+    # Digitally sign the PDF using pyHanko
+    try:
+        signed_out = io.BytesIO()
+        writer = IncrementalPdfFileWriter(io.BytesIO(unsigned_pdf))
+        signer = _signer(poll)
+        signer_display = settings.signer_display_name or settings.organisation_label or "Consensus Authority"
+        reason = "Official published ballot register certification"
+        location = settings.organisation_label or "Consensus Association Portal"
+
+        pdf_signer = signers.PdfSigner(
+            PdfSignatureMetadata(
+                field_name="ConsensusRegisterSignature", md_algorithm="sha256",
+                reason=reason,
+                location=location,
+            ),
+            signer=signer,
+            stamp_style=TextStampStyle(
+                stamp_text="Digitally signed by %(signer)s\nDate: %(ts)s\nReason: %(reason)s\nLocation: %(location)s\n(Click to verify digital signature)",
+            ),
+            new_field_spec=SigFieldSpec(
+                sig_field_name="ConsensusRegisterSignature", on_page=-1,
+                box=(30, 20, 500, 75), readable_field_name="Consensus Digital Signature",
+            ),
+        )
+        pdf_signer.sign_pdf(
+            writer, output=signed_out,
+            appearance_text_params={
+                "signer": signer_display,
+                "reason": reason,
+                "location": location,
+            },
+        )
+        final_pdf = signed_out.getvalue()
+    except Exception as e:
+        frappe.logger("consensus").warning(f"Could not apply digital signature to register PDF: {e}")
+        final_pdf = unsigned_pdf
+
     frappe.local.response.filename = f"Consensus-Register-{poll_name}.pdf"
-    frappe.local.response.filecontent = out.getvalue()
+    frappe.local.response.filecontent = final_pdf
     frappe.local.response.type = "download"
 
 
@@ -308,16 +427,16 @@ def get_public_results(poll_name: str):
         ["status", "result_visibility", "results_published", "frozen_title"], as_dict=True,
     )
     if not poll:
-        frappe.throw("Poll was not found.")
+        return {"poll": poll_name, "visible": False, "results": []}
     if poll.status not in ("Open", "Closed"):
-        frappe.throw("Poll results are not published.")
+        return {"poll": poll_name, "visible": False, "results": []}
     visible = (
         poll.result_visibility == "Immediately"
         or (poll.result_visibility == "After Closing" and poll.status == "Closed")
         or (poll.result_visibility == "Manual" and poll.results_published)
     )
     if not visible:
-        frappe.throw("Poll results are not published.")
+        return {"poll": poll_name, "visible": False, "results": []}
     options = frappe.get_all(
         "Consensus Poll Option", filters={"poll": poll_name},
         fields=["name", "frozen_label", "frozen_display_order"],
@@ -334,4 +453,4 @@ def get_public_results(poll_name: str):
             "ballot_count": len(ballots),
             "total_weight": round(sum(float(row.voting_weight or 0) for row in ballots), 3),
         })
-    return {"poll": poll_name, "title": poll.frozen_title, "results": results}
+    return {"poll": poll_name, "visible": True, "title": poll.frozen_title, "results": results}

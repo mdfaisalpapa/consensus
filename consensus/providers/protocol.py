@@ -46,9 +46,12 @@ class PollContext(TypedDict):
     rule_key: str | None
 
 
-class ProviderSnapshotToken(TypedDict):
+class ProviderSnapshotToken(TypedDict, total=False):
     token: str
     provider_data_version: str
+    approved_publication_id: str | None
+    approved_publication_version: int | None
+    approved_electorate_content_hash: str | None
 
 
 class VoterCandidate(TypedDict):
@@ -163,3 +166,5 @@ class VoterProviderV1(Protocol):
     ) -> ReceiptIdentity: ...
 
     def get_contact_destination(self, voter_ref: str, channel: str) -> ContactDestination: ...
+
+    def assert_voting_enabled(self, poll_context: PollContext) -> None: ...

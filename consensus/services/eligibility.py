@@ -70,7 +70,7 @@ def build_eligibility_snapshot(poll_name: str) -> dict[str, Any]:
     """Create a complete frozen snapshot. Call only while poll is Draft."""
     poll = frappe.get_doc("Consensus Poll", poll_name)
     poll.check_permission("write")
-    if poll.status != "Draft" or poll.snapshot_state not in ("Not Started", "Failed"):
+    if poll.status != "Draft" or (poll.snapshot_state and poll.snapshot_state not in ("Not Started", "Failed")):
         frappe.throw("Eligibility snapshot can only be built for a draft poll.")
     provider = get_registered_provider(poll.provider_key)
     if provider.api_version != poll.provider_api_version:
@@ -106,6 +106,7 @@ def build_eligibility_snapshot(poll_name: str) -> dict[str, Any]:
     frappe.db.delete("Consensus Eligibility", {"poll": poll.name})
     seen_refs: set[str] = set()
     seen_users: set[str] = set()
+    seen_user_contexts: set[tuple[str, str | None]] = set()
     cursor = None
     seen_cursors: set[str] = set()
     row_commitments = []
@@ -134,8 +135,15 @@ def build_eligibility_snapshot(poll_name: str) -> dict[str, Any]:
                     frappe.throw("Provider voter snapshot exceeds the configured candidate limit.")
                 if not isinstance(user, str) or not user or not frappe.db.exists("User", user):
                     frappe.throw("Every eligible candidate must map to an existing Frappe User in v1.")
-                if user in seen_users:
-                    frappe.throw("Provider allocated one Frappe User to multiple voter references in this poll.")
+                allocation_mode = getattr(poll_type, "allocation_mode", "Single Allocation Per User") or "Single Allocation Per User"
+                if allocation_mode == "Multiple Allocations Per User":
+                    user_ctx = (user, candidate.get("context_ref"))
+                    if user_ctx in seen_user_contexts:
+                        frappe.throw("Provider allocated the same Frappe User to multiple voter references for the same context reference.")
+                    seen_user_contexts.add(user_ctx)
+                else:
+                    if user in seen_users:
+                        frappe.throw("Provider allocated one Frappe User to multiple voter references in this poll.")
                 decision = provider.evaluate_eligibility(
                     candidate, context, effective_rule["rule_key"], effective_rule["config"]
                 )
@@ -250,8 +258,16 @@ def build_eligibility_snapshot(poll_name: str) -> dict[str, Any]:
             "reference_encryption_key_version": ref_version,
             "identity_encryption_key_version": identity_version,
             "signing_key_version": signing_version,
+            "approved_publication_id": (token.get("approved_publication_id") or None) if isinstance(token, dict) else None,
+            "approved_publication_version": (int(token["approved_publication_version"]) if token.get("approved_publication_version") else None) if isinstance(token, dict) else None,
+            "approved_electorate_content_hash": (token.get("approved_electorate_content_hash") or None) if isinstance(token, dict) else None,
         }
         snapshot_hash = hashlib.sha256(canonical_json_bytes(snapshot_core)).hexdigest()
+        pub_meta = {}
+        if isinstance(token, dict):
+            for k in ("approved_publication_id", "approved_publication_version", "approved_electorate_content_hash"):
+                if token.get(k) is not None:
+                    pub_meta[k] = token[k]
         frappe.db.set_value("Consensus Poll", poll.name, {
             "snapshot_state": "Complete", "snapshot_completed_on": now_datetime(),
             "snapshot_poll_type_key": poll_type.type_key,
@@ -273,6 +289,7 @@ def build_eligibility_snapshot(poll_name: str) -> dict[str, Any]:
             "eligibility_snapshot_hash": snapshot_hash,
             "eligible_voter_count": count, "frozen_title": frozen_title,
             "snapshot_poll_type_label": poll_type.label,
+            **pub_meta,
         }, update_modified=False)
         return {"poll": poll.name, "eligible_voter_count": count, "snapshot_hash": snapshot_hash}
     except Exception:
@@ -348,6 +365,9 @@ def _persisted_snapshot_core(poll) -> dict[str, Any]:
         "reference_encryption_key_version": poll.snapshot_reference_encryption_key_version,
         "identity_encryption_key_version": poll.snapshot_identity_encryption_key_version,
         "signing_key_version": poll.snapshot_signing_key_version,
+        "approved_publication_id": poll.approved_publication_id or None,
+        "approved_publication_version": int(poll.approved_publication_version) if poll.approved_publication_version else None,
+        "approved_electorate_content_hash": poll.approved_electorate_content_hash or None,
     }
 
 

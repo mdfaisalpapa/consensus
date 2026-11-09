@@ -12,10 +12,12 @@
     {"fieldname": "type_key", "fieldtype": "Data", "label": "Type Key", "reqd": 1, "unique": 1, "in_list_view": 1},
     {"fieldname": "description", "fieldtype": "Small Text", "label": "Description"},
     {"fieldname": "enabled", "fieldtype": "Check", "label": "Enabled", "default": "1", "in_list_view": 1},
+    {"fieldname": "ballot_privacy", "fieldtype": "Select", "label": "Ballot Privacy", "options": "Secret Ballot\nOpen Ballot (Roll-Call)", "default": "Secret Ballot", "in_list_view": 1},
     {"fieldname": "configuration_version", "fieldtype": "Data", "label": "Configuration Version", "default": "1"},
     {"fieldname": "default_result_visibility", "fieldtype": "Select", "label": "Default Result Visibility", "options": "After Closing\nImmediately\nManual", "default": "After Closing"},
     {"fieldname": "default_rule_key", "fieldtype": "Data", "label": "Default Provider Rule Key"},
-    {"fieldname": "default_rule_config", "fieldtype": "Code", "label": "Default Provider Rule Configuration", "options": "JSON", "description": "Provider validated defaults; poll overrides use recursive object merge, array replacement and null removal semantics."}
+    {"fieldname": "default_rule_config", "fieldtype": "Code", "label": "Default Provider Rule Configuration", "options": "JSON", "description": "Provider validated defaults; poll overrides use recursive object merge, array replacement and null removal semantics."},
+    {"fieldname": "allocation_mode", "fieldtype": "Select", "label": "Voter Allocation Mode", "options": "Single Allocation Per User\nMultiple Allocations Per User", "default": "Single Allocation Per User"}
   ],
   "permissions": [
     {"role": "System Manager", "read": 1, "write": 1, "create": 1, "delete": 1, "report": 1, "export": 1, "print": 1},

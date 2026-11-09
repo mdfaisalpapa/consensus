@@ -5,6 +5,22 @@ from frappe.model.document import Document
 class ConsensusPoll(Document):
     """Generic poll configuration with immutable post-snapshot settings."""
 
+    def onload(self):
+        if self.snapshot_state == "Complete":
+            cast_count = frappe.db.count("Consensus Participation", {"poll": self.name})
+            eligible = self.eligible_voter_count or frappe.db.count("Consensus Eligibility", {"poll": self.name})
+            pct = round((cast_count / eligible * 100.0), 2) if eligible else 0.0
+            self.set_onload("ballots_cast_count", cast_count)
+            self.set_onload("turnout_percentage", pct)
+            if self.ballots_cast_count != cast_count or self.turnout_percentage != pct:
+                frappe.db.set_value(
+                    "Consensus Poll", self.name,
+                    {"ballots_cast_count": cast_count, "turnout_percentage": pct},
+                    update_modified=False,
+                )
+                self.ballots_cast_count = cast_count
+                self.turnout_percentage = pct
+
     def before_insert(self):
         from consensus.providers.registry import get_configured_provider
         provider = get_configured_provider()
@@ -16,13 +32,15 @@ class ConsensusPoll(Document):
             frappe.throw("Voting end time must be later than voting start time.")
         if self.status == "Open" and self.snapshot_state != "Complete":
             frappe.throw("A poll cannot open before its eligibility snapshot is complete.")
+        if self.poll_type and not self.ballot_privacy:
+            self.ballot_privacy = frappe.db.get_value("Consensus Poll Type", self.poll_type, "ballot_privacy") or "Secret Ballot"
         if self.poll_type and not frappe.db.get_value("Consensus Poll Type", self.poll_type, "enabled"):
             frappe.throw("Select an enabled Consensus Poll Type.")
         if self.require_otp and not frappe.get_single("Voting Integration Settings").otp_enabled:
             frappe.throw("OTP is not enabled in Voting Integration Settings.")
         original = self.get_doc_before_save()
         if original and original.snapshot_state == "Complete":
-            frozen_fields = ("title", "description", "poll_type", "provider_key", "provider_api_version",
+            frozen_fields = ("title", "description", "poll_type", "ballot_privacy", "provider_key", "provider_api_version",
                 "starts_at", "ends_at", "scope_selections", "scope_selection_operator",
                 "scope_conditions", "scope_conditions_operator", "rule_key", "rule_config",
                 "require_otp", "result_visibility", "publish_anonymous_register")

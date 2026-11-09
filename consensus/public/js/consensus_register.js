@@ -4,7 +4,7 @@
     const params = new URLSearchParams(window.location.search);
     const poll = params.get("poll");
     const call = (method, args) =>
-        frappe.call({ method: "consensus.api.voting." + method, args }).then(r => r.message);
+        frappe.call({ method: "consensus.api.voting." + method, args, type: "GET" }).then(r => r.message);
     if (!poll) { status.textContent = "A poll reference is required."; return; }
     Promise.all([
         call("public_ballot_register", { poll_name: poll }),

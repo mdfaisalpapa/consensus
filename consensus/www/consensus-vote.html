@@ -1,24 +1,112 @@
 {% extends "templates/web.html" %}
-{% block title %}Consensus Voting{% endblock %}
+{% block title %}Consensus Voting & Polls{% endblock %}
 {% block page_content %}
-<main class="container consensus-voter" id="consensus-voter">
-  <h1>Voting</h1>
-  <p id="consensus-auth-message" class="text-muted">Sign in to view polls allocated to your account.</p>
-  <section id="consensus-controls" hidden>
-    <label for="consensus-poll">Poll</label>
-    <select id="consensus-poll" class="form-control"></select>
-    <div id="consensus-poll-details" class="mt-3"></div>
-    <div id="consensus-otp" hidden class="mt-3">
-      <button id="consensus-send-otp" class="btn btn-default">Send verification code</button>
-      <label for="consensus-otp-code" class="mt-2">Email verification code</label>
-      <input id="consensus-otp-code" class="form-control" inputmode="numeric" autocomplete="one-time-code">
-      <button id="consensus-verify-otp" class="btn btn-default mt-2">Verify code</button>
+<main class="container consensus-voter my-4" id="consensus-voter">
+  <!-- Navigation Header -->
+  <div class="d-flex justify-content-between align-items-center flex-wrap mb-3 border-bottom pb-3">
+    <div>
+      <h1 class="h3 mb-1 font-weight-bold">🗳️ Consensus Polls & Voting</h1>
+      <small class="text-muted">Cryptographic Anonymous Voting, Electorate Rolls & Certified Registers</small>
     </div>
-    <button id="consensus-cast" class="btn btn-primary mt-3" disabled>Cast vote</button>
-    <button id="consensus-receipt" class="btn btn-default mt-3" hidden>Download signed receipt</button>
-    <div id="consensus-message" class="alert mt-3" hidden></div>
+    <div>
+      <a href="/resident" class="btn btn-outline-secondary btn-sm">← Back to Resident Home</a>
+    </div>
+  </div>
+
+  <div id="consensus-auth-message" class="alert alert-info" hidden>
+    Please sign in to view polls allocated to your account.
+  </div>
+
+  <div id="consensus-loading" class="text-muted py-4 text-center">
+    <div class="spinner-border spinner-border-sm text-primary mr-2" role="status"></div>
+    Loading your allocated polls…
+  </div>
+
+  <!-- Tabs & Poll Cards Container -->
+  <section id="polls-tabs-container" hidden>
+    <ul class="nav nav-pills mb-4" id="pollTabs">
+      <li class="nav-item">
+        <a class="nav-link active font-weight-bold" id="tab-btn-active" href="#" role="button">
+          🗳️ Active Polls <span class="badge badge-primary ml-1" id="active-badge">0</span>
+        </a>
+      </li>
+      <li class="nav-item ml-2">
+        <a class="nav-link font-weight-bold" id="tab-btn-closed" href="#" role="button">
+          🏁 Closed Polls <span class="badge badge-secondary ml-1" id="closed-badge">0</span>
+        </a>
+      </li>
+    </ul>
+
+    <!-- Active Polls Content -->
+    <div id="tab-pane-active">
+      <div id="active-polls-list" class="row"></div>
+      <div id="active-empty-message" class="alert alert-light border text-muted py-4 text-center" hidden>
+        There are no active polls open for voting at this time.
+      </div>
+    </div>
+
+    <!-- Closed Polls Content -->
+    <div id="tab-pane-closed" hidden>
+      <div id="closed-polls-list" class="row"></div>
+      <div id="closed-empty-message" class="alert alert-light border text-muted py-4 text-center" hidden>
+        No closed polls are currently recorded for your account.
+      </div>
+    </div>
+  </section>
+
+  <!-- Poll Detail View (shown when a poll card is opened) -->
+  <section id="consensus-poll-detail" hidden>
+    <div class="d-flex justify-content-between align-items-center mb-3">
+      <button type="button" id="btn-back-to-polls" class="btn btn-outline-secondary btn-sm">
+        ← Back to All Polls
+      </button>
+      <a href="/resident" class="btn btn-link text-muted btn-sm">Resident Home</a>
+    </div>
+
+    <div id="consensus-message" class="alert mb-3" hidden></div>
+    <div id="consensus-poll-content"></div>
   </section>
 </main>
+
+<style>
+  .consensus-voter .poll-card {
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+    cursor: pointer;
+  }
+  .consensus-voter .poll-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1) !important;
+  }
+  .consensus-voter .nav-pills .nav-link.active {
+    background-color: #007bff;
+    color: #fff;
+  }
+  .consensus-voter .nav-pills .nav-link:not(.active) {
+    background-color: #f8f9fa;
+    color: #495057;
+    border: 1px solid #dee2e6;
+  }
+  .consensus-voter .voting-receipt-code {
+    font-family: SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+    overflow-wrap: anywhere;
+  }
+  .consensus-voter .option-select-card {
+    cursor: pointer;
+    border: 2px solid #dee2e6;
+    border-radius: 6px;
+    padding: 12px 16px;
+    margin-bottom: 10px;
+    transition: all 0.15s ease;
+  }
+  .consensus-voter .option-select-card:hover {
+    border-color: #007bff;
+    background-color: #f8fbff;
+  }
+  .consensus-voter .option-select-card.selected {
+    border-color: #007bff;
+    background-color: #eaf2ff;
+  }
+</style>
 <link rel="stylesheet" href="/assets/consensus/css/consensus.css">
 <script src="/assets/consensus/js/consensus_voter.js" defer></script>
 {% endblock %}

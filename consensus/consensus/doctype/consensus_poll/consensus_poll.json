@@ -33,6 +33,14 @@
       "in_list_view": 1
     },
     {
+      "fieldname": "ballot_privacy",
+      "fieldtype": "Select",
+      "label": "Ballot Privacy",
+      "options": "Secret Ballot\nOpen Ballot (Roll-Call)",
+      "default": "Secret Ballot",
+      "in_list_view": 1
+    },
+    {
       "fieldname": "description",
       "fieldtype": "Text Editor",
       "label": "Description"
@@ -247,6 +255,18 @@
       "read_only": 1
     },
     {
+      "fieldname": "ballots_cast_count",
+      "fieldtype": "Int",
+      "label": "Ballots Cast",
+      "read_only": 1
+    },
+    {
+      "fieldname": "turnout_percentage",
+      "fieldtype": "Percent",
+      "label": "Voter Turnout (%)",
+      "read_only": 1
+    },
+    {
       "fieldname": "eligibility_snapshot_hash",
       "fieldtype": "Data",
       "label": "Eligibility Snapshot Hash",
@@ -351,6 +371,24 @@
       "fieldname": "snapshot_poll_type_configuration_version",
       "fieldtype": "Data",
       "label": "Poll Type Configuration Version",
+      "read_only": 1
+    },
+    {
+      "fieldname": "approved_publication_id",
+      "fieldtype": "Data",
+      "label": "Approved Electorate Publication ID",
+      "read_only": 1
+    },
+    {
+      "fieldname": "approved_publication_version",
+      "fieldtype": "Int",
+      "label": "Approved Electorate Publication Version",
+      "read_only": 1
+    },
+    {
+      "fieldname": "approved_electorate_content_hash",
+      "fieldtype": "Data",
+      "label": "Approved Electorate Content Hash",
       "read_only": 1
     }
   ],

@@ -23,6 +23,10 @@ TEST_KEY = b"k" * 32
 
 
 class TestCorePrimitives(FrappeTestCase):
+    def setUp(self):
+        super().setUp()
+        frappe.flags.in_import = True
+
     def test_aes_gcm_identity_round_trip_and_tamper_detection(self):
         with patch("consensus.security.crypto.resolve_secret", return_value=(TEST_KEY, "test-v1")), patch(
             "consensus.security.crypto._site", return_value="test.local"

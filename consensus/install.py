@@ -23,7 +23,7 @@ def ensure_database_constraints():
         "Consensus Poll Option": [(["poll", "option_key"], "uniq_cons_poll_option_key")],
         "Consensus Eligibility": [
             (["poll", "voter_ref_digest"], "uniq_cons_elig_voter_digest"),
-            (["poll", "voter_user"], "uniq_cons_elig_voter_user"),
+            (["poll", "voter_user", "context_ref"], "uniq_cons_elig_voter_user"),
         ],
         "Consensus Participation": [(["poll", "voter_ref_digest"], "uniq_cons_part_voter_digest")],
         "Consensus Ballot": [

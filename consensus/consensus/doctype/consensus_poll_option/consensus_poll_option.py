@@ -14,6 +14,7 @@ class ConsensusPollOption(Document):
             if self.is_new() or (self.get_doc_before_save() and (
                 self.option_key != self.get_doc_before_save().option_key
                 or self.option_label != self.get_doc_before_save().option_label
+                or self.description != self.get_doc_before_save().description
                 or self.enabled != self.get_doc_before_save().enabled
                 or self.display_order != self.get_doc_before_save().display_order
             )):

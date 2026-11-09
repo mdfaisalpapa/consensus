@@ -5,8 +5,8 @@
   "istable": 1,
   "editable_grid": 1,
   "fields": [
-    {"fieldname": "scope_type", "fieldtype": "Data", "label": "Provider Scope Type", "reqd": 1, "in_list_view": 1},
-    {"fieldname": "entity_ref", "fieldtype": "Data", "label": "Provider Entity Reference", "reqd": 1, "in_list_view": 1},
+    {"fieldname": "scope_type", "fieldtype": "Select", "label": "Provider Scope Type", "options": "publication\ngroup", "default": "publication", "reqd": 1, "in_list_view": 1},
+    {"fieldname": "entity_ref", "fieldtype": "Autocomplete", "label": "Provider Entity Reference", "reqd": 1, "in_list_view": 1},
     {"fieldname": "inclusion", "fieldtype": "Select", "label": "Selection", "options": "Include\nExclude", "default": "Include", "reqd": 1, "in_list_view": 1},
     {"fieldname": "parent_ref", "fieldtype": "Data", "label": "Parent Reference"},
     {"fieldname": "display_label_snapshot", "fieldtype": "Data", "label": "Resolved Entity Label", "read_only": 1, "in_list_view": 1},
