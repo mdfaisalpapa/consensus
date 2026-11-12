@@ -141,18 +141,18 @@
         col.className = "col-md-6 col-lg-6 mb-3";
 
         const isVoted = poll.eligibility_status === "Voted";
-        const statusBadgeClass = poll.status === "Open" ? "badge-success" : (poll.status === "Scheduled" ? "badge-info" : "badge-secondary");
+        const statusBadgeClass = poll.status === "Open" ? "badge-success bg-success text-white" : (poll.status === "Scheduled" ? "badge-info bg-info text-white" : "badge-secondary bg-secondary text-white");
 
         // Determine participation badge based on poll status
         let participationBadge = "";
         if (isVoted) {
-            participationBadge = `<span class="badge badge-success px-2 py-1 font-weight-bold">✅ Voted</span>`;
+            participationBadge = `<span class="badge badge-success bg-success text-white px-2 py-1 font-weight-bold">✅ Voted</span>`;
         } else if (poll.status === "Open") {
-            participationBadge = `<span class="badge badge-primary px-2 py-1 font-weight-bold">🗳️ Ready to Vote</span>`;
+            participationBadge = `<span class="badge badge-primary bg-primary text-white px-2 py-1 font-weight-bold">🗳️ Ready to Vote</span>`;
         } else if (poll.status === "Closed") {
-            participationBadge = `<span class="badge badge-warning text-dark px-2 py-1 font-weight-bold">⏳ Not Voted</span>`;
+            participationBadge = `<span class="badge badge-warning bg-warning text-dark px-2 py-1 font-weight-bold">⏳ Not Voted</span>`;
         } else {
-            participationBadge = `<span class="badge badge-secondary px-2 py-1">${poll.status}</span>`;
+            participationBadge = `<span class="badge badge-secondary bg-secondary text-white px-2 py-1">${poll.status}</span>`;
         }
 
         let actionBtnText = "Cast Vote →";
@@ -167,18 +167,18 @@
         }
 
         col.innerHTML = `
-            <div class="card h-100 shadow-sm poll-card border ${isActive && !isVoted && poll.status === "Open" ? "border-primary" : ""}">
-                <div class="card-body d-flex flex-column justify-content-between">
+            <div class="card h-100 shadow-sm poll-card border ${isActive && !isVoted && poll.status === "Open" ? "border-primary" : ""}" style="border-radius: 10px;">
+                <div class="card-body d-flex flex-column justify-content-between p-3">
                     <div>
                         <div class="d-flex justify-content-between align-items-center mb-2">
                             <span class="badge ${statusBadgeClass} text-uppercase px-2 py-1">${poll.status}</span>
                             ${participationBadge}
                         </div>
-                        <h5 class="card-title text-primary font-weight-bold mb-2">
+                        <h5 class="card-title text-dark font-weight-bold mb-2">
                             ${poll.frozen_title || poll.title}
                         </h5>
                         <div class="small text-muted mb-3">
-                            <div class="mb-1">🏠 <strong>Unit / Flat:</strong> ${poll.context_ref || "General Allocation"}</div>
+                            <div class="mb-1">🏠 <strong>Unit / Flat:</strong> <span class="badge badge-light border text-dark">${poll.context_ref || "General Allocation"}</span></div>
                             <div class="mb-1">⚖️ <strong>Voting Weight:</strong> ${parseFloat(poll.voting_weight || 1.0).toFixed(3)} UDS</div>
                             <div>📅 <strong>Window:</strong> ${formatDate(poll.starts_at)} – ${formatDate(poll.ends_at)}</div>
                         </div>
